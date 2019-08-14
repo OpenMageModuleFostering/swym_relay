@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+   <tabs>
+      <swym translate="label" module="notepad">
+         <label>Swym</label>
+         <sort_order>0</sort_order>
+      </swym>
+   </tabs>
+   <sections>
+      <notepad translate="label" module="notepad">
+         <label>Swym Relay</label>
+         <tab>swym</tab>
+         <frontend_type>text</frontend_type>
+         <sort_order>0</sort_order>
+         <show_in_default>1</show_in_default>
+         <show_in_website>1</show_in_website>
+         <show_in_store>1</show_in_store>
+         <groups>
+            <general translate="label">
+               <label>General</label>
+               <frontend_type>text</frontend_type>
+               <sort_order>0</sort_order>
+               <show_in_default>1</show_in_default>
+               <show_in_website>1</show_in_website>
+               <show_in_store>1</show_in_store>
+               <fields>
+                  <status translate="label">
+                     <label>Enable</label>
+                     <frontend_type>select</frontend_type>
+                     <source_model>adminhtml/system_config_source_yesno</source_model>
+                     <sort_order>0</sort_order>
+                     <show_in_default>1</show_in_default>
+                     <show_in_website>1</show_in_website>
+                     <show_in_store>1</show_in_store>
+                     <comment>Enable/Disable the Swym Relay extension</comment>
+                  </status>
+                  <show translate="label">
+                     <label>Display UI</label>
+                     <frontend_type>select</frontend_type>
+                     <source_model>adminhtml/system_config_source_yesno</source_model>
+                     <sort_order>10</sort_order>
+                     <show_in_default>1</show_in_default>
+                     <show_in_website>1</show_in_website>
+                     <show_in_store>1</show_in_store>
+                     <comment>Display the Swym Relay UI on your website</comment>
+                  </show>
+                  <retailer_id translate="label">
+                     <label>Retailer Id</label>
+                     <frontend_type>text</frontend_type>
+                     <sort_order>20</sort_order>
+                     <show_in_default>1</show_in_default>
+                     <show_in_website>1</show_in_website>
+                     <show_in_store>1</show_in_store>
+                     <comment>Enter the Retailer Id provided by Swym</comment>
+                  </retailer_id>
+                  <swymkey translate="label">
+                     <label>PEM key</label>
+                     <frontend_type>textarea</frontend_type>
+                     <sort_order>22</sort_order>
+                     <show_in_default>1</show_in_default>
+                     <show_in_website>1</show_in_website>
+                     <show_in_store>1</show_in_store>
+                     <comment>Please paste the entire content of the public key provided by Swym. Ensure that you also
+                        include -----BEGIN PUBLIC KEY----- and -----END PUBLIC KEY----- as well.</comment>
+                  </swymkey>
+                  <wishlist translate="label">
+                     <label>Enable Swym Favorites</label>
+                     <frontend_type>select</frontend_type>
+                     <source_model>adminhtml/system_config_source_yesno</source_model>
+                     <backend_model>notepad/system_wishlist</backend_model>
+                     <sort_order>70</sort_order>
+                     <show_in_default>1</show_in_default>
+                     <show_in_website>1</show_in_website>
+                     <show_in_store>1</show_in_store>
+                     <comment>Swym Relay's Favoritesis a wishlist that works within Swym Relay. Enabling this container will disable the Magento wishlist feature automatically</comment>
+                     <depends>
+                        <status>1</status>
+                     </depends>
+                  </wishlist>
+                  <wishlisttitle translate="label">
+                     <label>Favorites's label</label>
+                     <frontend_type>text</frontend_type>
+                     <sort_order>80</sort_order>
+                     <show_in_default>1</show_in_default>
+                     <show_in_website>1</show_in_website>
+                     <show_in_store>1</show_in_store>
+                     <depends>
+                        <status>1</status>
+                     </depends>
+                     <comment>Customize the label for Swym favorite's. Some ideas for the label: Add to my Bag, Add to wishlist, Favorites etc.</comment>
+                  </wishlisttitle>
+
+                  <title translate="label">
+                     <label>Title</label>
+                     <frontend_type>text</frontend_type>
+                     <sort_order>30</sort_order>
+                     <show_in_default>1</show_in_default>
+                     <show_in_website>1</show_in_website>
+                     <show_in_store>1</show_in_store>
+                     <comment>Customize the title for the Swym Relay UI</comment>
+                  </title>
+                  <primary_color translate="label comment">
+                     <label>Color</label>
+                     <comment>HEX value (e.g. #000000)</comment>
+                     <frontend_type>text</frontend_type>
+                     <sort_order>50</sort_order>
+                     <show_in_default>1</show_in_default>
+                     <show_in_website>1</show_in_website>
+                     <show_in_store>1</show_in_store>
+                     <comment>Customize the primary color for the Swym Relay UI</comment>
+                  </primary_color>
+                  <icon translate="label comment">
+                     <label>Icon</label>
+                     <comment>Allowed file types: PNG, GIF, JPG, JPEG (40x40)</comment>
+                     <frontend_type>image</frontend_type>
+                     <backend_model>adminhtml/system_config_backend_image</backend_model>
+                     <upload_dir config="system/filesystem/media" scope_info="1">notepad</upload_dir>
+                     <base_url type="media" scope_info="1">notepad</base_url>
+                     <sort_order>60</sort_order>
+                     <show_in_default>1</show_in_default>
+                     <show_in_website>1</show_in_website>
+                     <show_in_store>1</show_in_store>
+                  </icon>
+               </fields>
+            </general>
+         </groups>
+      </notepad>
+   </sections>
+</config>

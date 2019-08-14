@@ -1,0 +1,13 @@
+<layout> 
+	<default>
+<!-- 		<reference name="head">			
+			<action method="addJs"><script>notepad/process.js</script></action>
+			
+		   <action method="addItem"><type>external_js</type><name>http://code.swym.it/code/swym.js</name><params/></action>
+		</reference>
+		 -->
+		<reference name="content">
+			<block type="notepad/notepad" name="notepad" as="notepad"  template="notepad/swymcall.phtml"/>
+		</reference>
+	 </default>  
+</layout>   

@@ -1,0 +1,22 @@
+<?php if($this->isNotepadEnabled()){ 
+$retailerId=$this->getRetailerId();
+?>
+<script type="text/javascript" src="http://code.swym.it/code/swym.js"></script>
+<script type="text/javascript">
+	if(typeof window._swat!='undefined')
+		window._swat.setRetailerId("<?php echo $retailerId; ?>");
+</script>
+
+<?php if($allData=$this->getPriceUpdateData()){
+	/* foreach($allData as $data) */
+	{
+ ?>
+	<script type="text/javascript">
+		if(typeof window._swat!='undefined')
+		{
+			window._swat.performPriceUpdate (<?php echo $allData ?>,function(){console.log('check');});
+		}
+	</script>
+<?php	}
+ } ?>
+<?php } ?>
