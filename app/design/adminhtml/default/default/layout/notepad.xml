@@ -3,7 +3,7 @@
 <!-- 		<reference name="head">			
 			<action method="addJs"><script>notepad/process.js</script></action>
 			
-		   <action method="addItem"><type>external_js</type><name>http://code.swym.it/code/swym.js</name><params/></action>
+		   <action method="addItem"><type>external_js</type><name>//s3.amazonaws.com/code.swym.it/code/swym.js</name><params/></action>
 		</reference>
 		 -->
 		<reference name="content">

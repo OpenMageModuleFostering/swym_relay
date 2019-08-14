@@ -3,8 +3,8 @@
   <modules>
     <Swym_Notepad>
       <active>true</active>
-      <codePool>local</codePool>
-      <version>0.1.0</version>
+      <codePool>community</codePool>
+      <version>1.11.0</version>
     </Swym_Notepad>
   </modules>
 </config>

@@ -2,7 +2,7 @@
 <config>
   <modules>
     <Swym_Notepad>
-      <version>0.1.0</version>
+      <version>1.11.0</version>
     </Swym_Notepad>
   </modules>
   <frontend>
@@ -22,7 +22,6 @@
 			</notepad>
 		  </updates>
 		</layout>
-		
   </frontend>
   <adminhtml>
 	<layout>
@@ -39,33 +38,32 @@
                 <class>Swym_Notepad_Model</class>
             </notepad>
 			
-     </models>
-	 <resources>
+  </models>
+	<resources>
             <notepad_setup>
                 <setup>
                     <module>Swym_Notepad</module>
                     <class>Mage_Core_Model_Resource_Setup</class>
                 </setup>
             </notepad_setup>
-      </resources>
-	 
-	 <events>
-            <checkout_cart_product_add_after>
-                <observers>
-                    <notepad_cart_add_product_complete>
-                        <class>Swym_Notepad_Model_Observer</class>
-                        <method>addToCartAfter</method>
-                    </notepad_cart_add_product_complete>
-                </observers>
-            </checkout_cart_product_add_after>
+  </resources>
+	<events>
+      <checkout_cart_product_add_after>
+          <observers>
+              <notepad_cart_add_product_complete>
+                  <class>Swym_Notepad_Model_Observer</class>
+                  <method>addToCartAfter</method>
+              </notepad_cart_add_product_complete>
+          </observers>
+      </checkout_cart_product_add_after>
 			<wishlist_add_product>
-                <observers>
-                    <notepad_wishlist_add_product>
-                        <class>Swym_Notepad_Model_Observer</class>
-                        <method>addToWishlist</method>
-                    </notepad_wishlist_add_product>
-                </observers>
-            </wishlist_add_product>
+          <observers>
+              <notepad_wishlist_add_product>
+                  <class>Swym_Notepad_Model_Observer</class>
+                  <method>addToWishlist</method>
+              </notepad_wishlist_add_product>
+          </observers>
+      </wishlist_add_product>
 			<controller_action_postdispatch_checkout_cart_couponPost>
                 <observers>
                     <notepad_wishlist_add_product>
@@ -74,7 +72,7 @@
                     </notepad_wishlist_add_product>
                 </observers>
             </controller_action_postdispatch_checkout_cart_couponPost>
-			<sales_order_save_after>
+	    <sales_order_place_after>
                 <observers>
                     <notepad_order_place>
                         <type>singleton</type>
@@ -82,40 +80,45 @@
                         <method>orderPlaceAfter</method>
                     </notepad_order_place>
                 </observers>
-            </sales_order_save_after>
+            </sales_order_place_after>
 			<sales_quote_remove_item>
-                <observers>
-                    <notepad_sales_quote_remove_item>
-                        <type>singleton</type>
-                        <class>Swym_Notepad_Model_Observer</class>
-                        <method>removeItemFromCart</method>
-                    </notepad_sales_quote_remove_item>
-                </observers>
-            </sales_quote_remove_item>
+          <observers>
+              <notepad_sales_quote_remove_item>
+                  <type>singleton</type>
+                  <class>Swym_Notepad_Model_Observer</class>
+                  <method>removeItemFromCart</method>
+              </notepad_sales_quote_remove_item>
+          </observers>
+      </sales_quote_remove_item>
 			<catalog_product_save_before>
-				<observers>
-					<notepad_catalog_product_save_before>
-						<type>singleton</type>
-						<class>Swym_Notepad_Model_Observer</class>
-						<method>productSaveBefore</method>
-					</notepad_catalog_product_save_before>
-				</observers>
+				  <observers>
+					     <notepad_catalog_product_save_before>
+						        <type>singleton</type>
+						        <class>Swym_Notepad_Model_Observer</class>
+						        <method>productSaveBefore</method>
+					     </notepad_catalog_product_save_before>
+				  </observers>
 			</catalog_product_save_before>
-        </events>
-    <helpers>	 
+  </events>
+  <helpers>	 
       <notepad>
-        <class>Swym_Notepad_Helper</class>
+          <class>Swym_Notepad_Helper</class>
       </notepad>
-    </helpers>
+  </helpers>
 	<blocks>
-	  <notepad>
-		<class>Swym_Notepad_Block</class>
+	   <notepad>
+	       <class>Swym_Notepad_Block</class>
 	  </notepad>
 	  <catalog>
-		 <rewrite>
-			 <product_price>Swym_Notepad_Block_Product_Price</product_price>
-		 </rewrite>
-	 </catalog>
+		  <rewrite>
+		    <product_price>Swym_Notepad_Block_Product_Price</product_price>
+		  </rewrite>
+	  </catalog>
+    <bundle>
+      <rewrite>
+        <catalog_product_price>Swym_Notepad_Block_Product_Bundleprice</catalog_product_price>
+      </rewrite>
+    </bundle>
 	</blocks>
-  </global>
+</global>
 </config> 

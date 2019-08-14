@@ -50,24 +50,36 @@ class Swym_Notepad_IndexController extends Mage_Core_Controller_Front_Action{
 		}
 		echo '';
 	 }
-	 /*******Function for authenticating loggedin users******/
-	public function authenticateAction(){
-		$email =$this->getRequest()->getParam('email');
+	 public function initswymAction(){
+		Mage::getSingleton('core/session')->setData('swym_details',$this->getRequest()->getParams());
+
+	 }
+
+	 /*******Function for authenticating loggedin user******/
+	 public function authenticateuserAction(){
+		if(!Mage::getSingleton('customer/session')->isLoggedIn()){
+			echo 0;
+			return false;
+		}
+		$regid= Mage::helper('notepad')->getSwymValue('regid');
+		$host=Mage::helper('notepad')->getSwymValue('host');
+		$email =Mage::getSingleton('customer/session')->getCustomer()->getEmail();
+
 		$retailerId=Mage::getStoreConfig('notepad/general/retailer_id',Mage::app()->getStore()->getId());
 	    $pub_key_string=Mage::getStoreConfig('notepad/general/swymkey',Mage::app()->getStore()->getId());
 	    openssl_get_publickey($pub_key_string);
 	    openssl_public_encrypt($email,$crypttext,$pub_key_string,OPENSSL_PKCS1_OAEP_PADDING);
-		//echo 'cryptText length before base64encode:'.strlen($crypttext).'</br>';
-		$url=$this->getRequest()->getParam('host').'/provider/validate';
-		$regid=$this->getRequest()->getParam('regId');
+
+		//$url=$host.'/api/provider/'.urlencode($retailerId).'/provider/validate';
+		$url=$host.'/provider/validate';
 		$crypttext=base64_encode($crypttext);
-		$postFields='pid='.$retailerId.'&e='.$crypttext.'&reg-id='.$regid;
+		//$postFields='{"e":"'.$crypttext.'"}';
 		$postFields='{"pid":"'.$retailerId.'","e":"'.$crypttext.'","reg-id":"'.$regid.'"}';
 
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL,$url);
 		curl_setopt($ch, CURLOPT_POSTFIELDS,$postFields);
-		curl_setopt($ch, CURLOPT_HTTPHEADER, array("Content-Type:application/json"));
+		curl_setopt($ch, CURLOPT_HTTPHEADER, array("Content-Type:application/json" /*, "x-swym-regid:".$regid*/));
 		curl_setopt($ch, CURLOPT_HEADER, 1);
 		curl_setopt($ch, CURLOPT_POST, 1);
 
@@ -75,16 +87,22 @@ class Swym_Notepad_IndexController extends Mage_Core_Controller_Front_Action{
 		$server_output = curl_exec ($ch);
 		$info = curl_getinfo($ch);
 		curl_close ($ch);
-		if($info['http_code']==200)
+    $data['url']=$url;
+		$data['other_details']=json_decode($postFields);
+		$data['http_code']=$info['http_code'];
+		if($info['http_code']!='200')
 		{
-			echo json_encode(array('success'=>'1'));
+
+			Mage::log('Request : '.print_r($data,true).PHP_EOL.'Output: '.$server_output,null,'swym_request.log',true);
+			echo 0;
 		}
 		else
 		{
-			echo json_encode(array('success'=>'0'));
+			Mage::log('Request : '.print_r($data,true).PHP_EOL.'Output: '.$server_output,null,'swym_request.log');
+			echo 1;
 		}
-
 	 }
+
 	 public function cartAction()
 	 {
 			if($this->checkProductExistOrNot())
@@ -96,6 +114,7 @@ class Swym_Notepad_IndexController extends Mage_Core_Controller_Front_Action{
 			$cart = Mage::getModel('checkout/cart');
 			$cart->init();
 			$product= Mage::getModel('catalog/product')->load($this->getRequest()->getParam('product'));
+			$productId=$product->getId();
 			$params = array(
 				'product' => $product->getId(),
 				'super_attribute' => $this->getRequest()->getParam('super_attribute'),

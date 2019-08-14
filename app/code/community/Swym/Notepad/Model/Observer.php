@@ -2,100 +2,157 @@
 class Swym_Notepad_Model_Observer
 {
 
+	public function swymCollect($data,$postFields){
+		$regid= Mage::helper('notepad')->getSwymValue('regid');
+		$host=Mage::helper('notepad')->getSwymValue('host');
+		$origin=Mage::getBaseUrl();
+		$useragent=Mage::helper('notepad')->getSwymValue('useragent');
+		$sessionid=Mage::helper('notepad')->getSwymValue('sessionid');
+		$retailerId=Mage::getStoreConfig('notepad/general/retailer_id',Mage::app()->getStore()->getId());
+		$ch = curl_init();
+
+		$url=$host.'/api/provider/'.urlencode($retailerId).'/collect';
+		$ip=$_SERVER['REMOTE_ADDR'];
+		$httpHeaders=array( 'Accept:*/*',
+							'Content-Type:application/json',
+							'Accept-Encoding:gzip, deflate, sdch',
+							'Accept-Language:en-US,en;q=0.8',
+							'Host:'.$host,
+							'Origin:'.$origin,
+							'Referer:'.$origin,
+							'User-Agent:'.$useragent,
+							'x-swym-regid:'.$regid,
+							'x-swym-sessionid:'.$sessionid,
+							'REMOTE_ADDR:'.$ip,
+							'X_FORWARDED_FOR:'.$ip
+							);
+
+		curl_setopt($ch, CURLOPT_URL, $url);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, $httpHeaders);
+		curl_setopt($ch, CURLOPT_HEADER, 0);
+		curl_setopt($ch, CURLOPT_POST, 1);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+
+		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+		$server_output = curl_exec ($ch);
+		$info = curl_getinfo($ch);
+		$data['other_details']=Mage::helper('notepad')->getSwymData();
+		$data['url']=$url;
+		$data['http_code']=$info['http_code'];
+		if($info['http_code']!='200')
+		{
+			Mage::log('Request : '.print_r($data,true).PHP_EOL.'Output: '.$server_output,null,'swym_request.log',true);
+			Mage::log('URL: '.$url, null, 'swym_request.log', true);
+			Mage::log('HTTP Headers: '.print_r($httpHeaders, true), null, 'swym_request.log', true);
+			Mage::log('Error: '. curl_error($ch), null, 'swym_request.log', true);
+		}
+		else
+		{
+			Mage::log('Request : '.print_r($data,true).PHP_EOL.'Output: '.$server_output,null,'swym_request.log');
+		}
+		curl_close ($ch);
+	}
 	public function addToCartAfter($observer)
 	{
-		 /* print_r(Mage::app()->getRequest()->getParams());die;  */
 
-		$product=$observer->getEvent()->getProduct();
-		$qty=Mage::app()->getRequest()->getParam('qty');
-		$variant=array();
-		$finalPrice=0;
-		$url='?';
+		try{
 
-		if($product->getTypeId() == Mage_Catalog_Model_Product_Type::TYPE_GROUPED)
-		{
+			$product=$observer->getEvent()->getProduct();
+			$qty=Mage::app()->getRequest()->getParam('qty');
+			$variant=array();
 			$finalPrice=0;
-			$oprice=0;
-			$options=Mage::app()->getRequest()->getParam('super_group');
-			foreach($options as $key=>$val)
-			{
-				$pro=Mage::getModel('catalog/product')->load($key);
-				$finalPrice+=$pro->getFinalPrice()*$val;
-				$oprice+=$pro->getPrice()*$val;
-				$url.='&super_group['.$key.']='.$val;
-			}
+			$url='?';
 
-		}
-		elseif($product->getTypeId() == Mage_Catalog_Model_Product_Type::TYPE_BUNDLE)
-		{
-			 $oprice=$finalPrice=$product->getFinalPrice();
-			$options=Mage::app()->getRequest()->getParam('bundle_option');
-			foreach($options as $key=>$val)
+			if($product->getTypeId() == Mage_Catalog_Model_Product_Type::TYPE_GROUPED)
 			{
-				$url.='&bundle_option['.$key.']='.$val;
+				$finalPrice=0;
+				$oprice=0;
+				$options=Mage::app()->getRequest()->getParam('super_group');
+				foreach($options as $key=>$val)
+				{
+					$pro=Mage::getModel('catalog/product')->load($key);
+					$finalPrice+=$pro->getFinalPrice()*$val;
+					$oprice+=$pro->getPrice()*$val;
+					$url.='&super_group['.$key.']='.$val;
+				}
+
 			}
-			$bundle_option_qty=Mage::app()->getRequest()->getParam('bundle_option_qty');
-			foreach($bundle_option_qty as $key=>$val)
+			elseif($product->getTypeId() == Mage_Catalog_Model_Product_Type::TYPE_BUNDLE)
 			{
-				$url.='&bundle_option_qty['.$key.']='.$val;
-			}
-		}
-		elseif($product->getTypeId() == Mage_Catalog_Model_Product_Type::TYPE_CONFIGURABLE)
-		{
-			$produto_cor_options = $product->getTypeInstance(true)->getConfigurableAttributesAsArray($product);
-			$configOptions=array();
-			foreach($produto_cor_options as $options){
-				$atributo_cor = $options['values'];
-				foreach ($atributo_cor as $options2){
-					$configOptions[$options['attribute_id']][$options2['value_index']]=array(
-																					'attribute_label'=>$options['frontend_label'],
-																					'option_label'=>$options2['label'],
-																					);
+				 $oprice=$finalPrice=$product->getFinalPrice();
+				$options=Mage::app()->getRequest()->getParam('bundle_option');
+				foreach($options as $key=>$val)
+				{
+					$url.='&bundle_option['.$key.']='.$val;
+				}
+				$bundle_option_qty=Mage::app()->getRequest()->getParam('bundle_option_qty');
+				foreach($bundle_option_qty as $key=>$val)
+				{
+					$url.='&bundle_option_qty['.$key.']='.$val;
 				}
 			}
-			$super_attributes=Mage::app()->getRequest()->getParam('super_attribute');
-
-			foreach($super_attributes as $key=>$val)
+			elseif($product->getTypeId() == Mage_Catalog_Model_Product_Type::TYPE_CONFIGURABLE)
 			{
-				$url.='&super_attribute['.$key.']='.$val;
-				$variant[$key]=array(
-									'option_id'=>$val,
-									'type'=>$configOptions[$key][$val]['attribute_label'],
-									'label'=>$configOptions[$key][$val]['option_label']);
+				$produto_cor_options = $product->getTypeInstance(true)->getConfigurableAttributesAsArray($product);
+				$configOptions=array();
+				foreach($produto_cor_options as $options){
+					$atributo_cor = $options['values'];
+					foreach ($atributo_cor as $options2){
+						$configOptions[$options['attribute_id']][$options2['value_index']]=array(
+																						'attribute_label'=>$options['frontend_label'],
+																						'option_label'=>$options2['label'],
+																						);
+					}
+				}
+				$super_attributes=Mage::app()->getRequest()->getParam('super_attribute');
 
+				foreach($super_attributes as $key=>$val)
+				{
+					$url.='&super_attribute['.$key.']='.$val;
+					$variant[$key]=array(
+										'option_id'=>$val,
+										'type'=>$configOptions[$key][$val]['attribute_label'],
+										'label'=>$configOptions[$key][$val]['option_label']);
+
+				}
+				$finalPrice=$product->getFinalPrice();
+				$oprice=$product->getPrice();
 			}
-			$finalPrice=$product->getFinalPrice();
-			$oprice=$product->getPrice();
-		}
-		else
-		{
-			$finalPrice=$product->getFinalPrice();
-			$oprice=$product->getPrice();
-		}
-		$image=Mage::helper('notepad')->getImageUrl($product);
-		if($allData=Mage::getSingleton('core/session')->getData('notepadcart'))
-		{
+			else
+			{
+				$finalPrice=$product->getFinalPrice();
+				$oprice=$product->getPrice();
+			}
+			$image=Mage::helper('notepad')->getImageUrl($product);
+
+			$url=Mage::getUrl('notepad/index/cart',array('product'=>$product->getId())).$url;
+			$qty=$qty==0?1:$qty;
+			$data=array(
+					'du'=>/* $product->getProductUrl() */$url,
+					'dt'=>$product->getName(),
+					'pr'=>$finalPrice,
+					'op'=>$oprice,
+					'variants'=>json_encode($variant),
+					'epi'=>$product->getId(),
+					'qty'=>$qty,
+					'iu'=>$image,
+					'et'=>3
+				);
+			$postFields='';
+			foreach($data as $key=>$val)
+			{
+				$postFields.=$key.'='.urlencode($val).'&';
+			}
+			$this->swymCollect($data,$postFields);
+
 
 		}
-		else
+		catch(Exception $e)
 		{
-			$allData=array();
+			echo $e->getMessage();die;
 		}
-		$url=Mage::getUrl('notepad/index/cart',array('product'=>$product->getId())).$url;
-		$data=json_encode(array(
-				'du'=>/* $product->getProductUrl() */$url,
-				'dt'=>$product->getName(),
-				'pr'=>$finalPrice,
-				'op'=>$oprice,
-				'variants'=>json_encode($variant),
-				'epi'=>$product->getId(),
-				'qty'=>$qty,
-				'iu'=>$image,
-			));
-		$allData[]=$data;
-		$cookie = Mage::getSingleton('core/cookie');
-		$cookie->set('notepadcart','notepadcart' ,time()+86400,'/');
-		Mage::getSingleton('core/session')->setData('notepadcart',$allData);
 
 	}
 	public function orderPlaceAfter($observer)
@@ -104,6 +161,7 @@ class Swym_Notepad_Model_Observer
 		if(Mage::registry('notepad_save_observer_executed')){
 					return $this; //this method has already been executed once in this request
 				}
+		Mage::getSingleton('core/session')->setData('swym_order',$order->getId());
 		$allData=array();
 		$items_processed=array();
 		foreach($order->getAllItems() as $item)
@@ -136,9 +194,6 @@ class Swym_Notepad_Model_Observer
 
 							foreach($produto_cor_options as $super_attribute)
 							{
-								//$url.='&super_attribute['.$key.']='.$val;
-								/* $variant[$configOptions[$key][$val]['attribute_label']]=$configOptions[$key][$val]['option_label']; */
-
 								$key=$super_attribute['attribute_id'];
 								$val=Mage::getModel('catalog/product')->load($item1->getProduct()->getId())->getData($super_attribute['attribute_code']);
 								$variant[$key]=array(
@@ -156,7 +211,7 @@ class Swym_Notepad_Model_Observer
 				$finalPrice=$product->getFinalPrice();
 				$oprice=$product->getPrice();
 				$image=Mage::helper('notepad')->getImageUrl($product);
-				$data=json_encode(array(
+				$data=array(
 						'du'=>$product->getProductUrl(),
 						'dt'=>$product->getName(),
 						'pr'=>$finalPrice,
@@ -166,7 +221,7 @@ class Swym_Notepad_Model_Observer
 						'qty'=>$item->getQtyOrdered(),
 						'et'=>6,
 						'iu'=>$image,
-					));
+					);
 				$allData[]=$data;
 			}
 			else
@@ -174,7 +229,7 @@ class Swym_Notepad_Model_Observer
 				$finalPrice=$product->getFinalPrice();
 				$oprice=$product->getPrice();
 				$image=Mage::helper('notepad')->getImageUrl($product);
-				$data=json_encode(array(
+				$data=array(
 						'du'=>$product->getProductUrl(),
 						'dt'=>$product->getName(),
 						'pr'=>$finalPrice,
@@ -183,26 +238,27 @@ class Swym_Notepad_Model_Observer
 						'qty'=>$item->getQtyOrdered(),
 						'et'=>6,
 						'iu'=>$image,
-					));
+					);
 				$allData[]=$data;
 			}
 
 		}
-		Mage::getSingleton('core/session')->setData('reportpurchase',$allData);
+		foreach($allData as $data)
+		{
+			$postFields='';
+			foreach($data as $key=>$val)
+			{
+				$postFields.=$key.'='.urlencode($val).'&';
+			}
+			$this->swymCollect($data,$postFields);
+		}
 		Mage::register('notepad_save_observer_executed',true);
 	}
 	public function removeItemFromCart($observer)
 	{
-
+		$qty=$observer->getQuoteItem()->getQty();
 		$product=$observer->getQuoteItem()->getProduct();
-		if($allData=Mage::getSingleton('core/session')->getData('remove_cart_item'))
-		{
-
-		}
-		else
-		{
-			$allData=array();
-		}
+		$data=array();
 		if($product->getTypeId() == Mage_Catalog_Model_Product_Type::TYPE_CONFIGURABLE)
 		{
 
@@ -235,7 +291,7 @@ class Swym_Notepad_Model_Observer
 			$finalPrice=$product->getFinalPrice();
 			$oprice=$product->getPrice();
 			$image=Mage::helper('notepad')->getImageUrl($product);
-			$data=json_encode(array(
+			$data=array(
 					'du'=>$product->getProductUrl(),
 					'dt'=>$product->getName(),
 					'pr'=>$finalPrice,
@@ -244,8 +300,8 @@ class Swym_Notepad_Model_Observer
 					'epi'=>$product->getId(),
 					'et'=>7,
 					'iu'=>$image,
-				));
-			$allData[]=$data;
+				);
+
 		}
 		else
 		{
@@ -253,7 +309,8 @@ class Swym_Notepad_Model_Observer
 			$oprice=$product->getPrice();
 			$image=Mage::helper('notepad')->getImageUrl($product);
 
-			$data=json_encode(array(
+			$data=array(
+					'du'=>$product->getProductUrl(),
 					'dt'=>$product->getName(),
 					'pr'=>$finalPrice,
 					'op'=>$oprice,
@@ -261,24 +318,24 @@ class Swym_Notepad_Model_Observer
 					'et'=>7,
 					'qty'=>$qty,
 					'iu'=>$image,
-				));
-			$allData[]=$data;
+				);
+
 		}
-		Mage::getSingleton('core/session')->setData('remove_cart_item',$allData);
+		$postFields='';
+		foreach($data as $key=>$val)
+		{
+			$postFields.=$key.'='.urlencode($val).'&';
+		}
+
+		$this->swymCollect($data,$postFields);
+
 	}
 	public function addToWishlist($observer)
 	{
 		$product=$observer->getEvent()->getProduct();
 
 		$image=Mage::helper('notepad')->getImageUrl($product);
-		if($allData=Mage::getSingleton('core/session')->getData('notepad_wishlist'))
-		{
 
-		}
-		else
-		{
-			$allData=array();
-		}
 		$data=array(
 			'du'=>$product->getProductUrl(),
 			'dt'=>$product->getName(),
@@ -286,11 +343,17 @@ class Swym_Notepad_Model_Observer
 			'epi'=>$product->getId(),
 			'qty'=>1,
 			'iu'=>$image,
+			'et'=>4
 			);
-		$allData[]=$data;
-		$cookie = Mage::getSingleton('core/cookie');
-		$cookie->set('notepad_wishlist','notepad_wishlist' ,time()+86400,'/');
-		Mage::getSingleton('core/session')->setData('notepad_wishlist',$allData);
+
+		$postFields='';
+		foreach($data as $key=>$val)
+		{
+			$postFields.=$key.'='.urlencode($val).'&';
+		}
+
+		$this->swymCollect($data,$postFields);
+
 
 	}
 	public function couponPost($observer)
@@ -315,9 +378,9 @@ class Swym_Notepad_Model_Observer
 	public function productSaveBefore($observer)
 	{
 		$product = $observer->getProduct();
-		if($allData=Mage::getSingleton('admin/session')->getData('product_price_update'))
+		if(Mage::getSingleton('admin/session')->getData('product_price_update'))
 		{
-
+			$allData=json_decode(Mage::getSingleton('admin/session')->getData('product_price_update'),true);
 		}
 		else
 		{

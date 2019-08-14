@@ -1,47 +1,29 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <layout version="0.1.0">
-	<default>
-		<reference name="head">
-         <action method="addJs" ifconfig="notepad/general/status" ><script>notepad/swymex.js</script></action>
-			<action method="addCss"><stylesheet>notepad/css/styles.css</stylesheet></action>
-
-			<block type="core/text" name="notepadjs">
-			  <action method="setText">
-				<text>
-				   <![CDATA[<script type="text/javascript" src="http://code.swym.it/code/swym.js"></script><script type="text/javascript"></script>]]>
-				</text>
-			  </action>
-		   </block>
-         <block type="core/text" name="renderjs">
-           <action method="setText">
-            <text>
-               <![CDATA[<script type="text/javascript" src="http://code.swym.it/code/render.js"></script><script type="text/javascript"></script>]]>
-            </text>
-           </action>
+   <default>
+      <reference name="head">
+         <block type="core/text" name="notepadjs">
+            <action method="setText" ifconfig="notepad/general/status">
+               <text><![CDATA[<script type="text/javascript" src="//s3.amazonaws.com/code.swym.it/code/swym-magento.js" async=true></script><script type="text/javascript" src="//s3.amazonaws.com/code.swym.it/code/swym.js" async=true></script><script type="text/javascript">
+        (function(s, w, r, e, l, a, y) {r['SwymRetailerConfig'] = s;r[s] = r[s] || function(k, v) {r[s][k] = v;};})('_swrc', '', window);
+    </script>]]></text>
+            </action>
          </block>
-         <block type="core/text" name="mustachejs">
-           <action method="setText">
-            <text>
-               <![CDATA[<script type="text/javascript" src="http://code.swym.it/code/mustache.js"></script><script type="text/javascript"></script>]]>
-            </text>
-           </action>
+      </reference>
+      <reference name="after_body_start">
+         <block type="notepad/notepad" name="notepad" as="notepad" template="notepad/notepad.phtml">
+            <block type="notepad/notepad" name="swym_call_js" as="swym_call_js" template="notepad/swymcall.phtml" />
          </block>
-		</reference>
-
-		<reference name="after_body_start">
-			<block type="notepad/notepad" name="notepad" as="notepad"  template="notepad/notepad.phtml">
-            <block type="notepad/notepad" name="swym_call_js" as="swym_call_js"  template="notepad/swymcall.phtml"/>
-				<block type="notepad/notepad" name="main_notepad" as="main_notepad"  template="notepad/main_notepad.phtml"/>
-			</block>
-		</reference>
-	 </default>
-  <notepad_index_index>
-    <reference name="root">
-      <action method="setTemplate"><template>page/1column.phtml</template></action>
-    </reference>
-    <reference name="content">
-      <block type="notepad/index" name="notepad_index" template="notepad/index.phtml"/>
-    </reference>
-  </notepad_index_index>
+      </reference>
+   </default>
+   <notepad_index_index>
+      <reference name="root">
+         <action method="setTemplate">
+            <template>page/1column.phtml</template>
+         </action>
+      </reference>
+      <reference name="content">
+         <block type="notepad/index" name="notepad_index" template="notepad/index.phtml" />
+      </reference>
+   </notepad_index_index>
 </layout>
-

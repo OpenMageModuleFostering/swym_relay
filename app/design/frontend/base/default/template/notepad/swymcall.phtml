@@ -1,120 +1,36 @@
+<?php $isSecure = Mage::app()->getStore()->isCurrentlySecure(); ?>
+<input type="hidden" id="initswymurl" value="<?php echo $isSecure?Mage::getUrl('notepad/index/initswym',array('_secure'=>true)) : Mage::getUrl('notepad/index/initswym') ?>">
+<input type="hidden" id="swymauthurl" value="<?php echo $isSecure?Mage::getUrl('notepad/index/authenticateuser',array('_secure'=>true)) : Mage::getUrl('notepad/index/authenticateuser') ?>">
 <input type="hidden" id="updateswymcallurl" value="<?php echo Mage::getUrl('notepad/index/swymcalljs') ?>">
-<input type="hidden" id="authenticateloggedinuser" value="<?php echo Mage::getUrl('notepad/index/authenticate') ?>">
-<?php
-if($email=Mage::getSingleton('customer/session')->getCustomer()->getEmail())
-{
-?>
-	<script type="text/javascript">
-		customerIsLoggedIn=true;
-		customerEmail='<?php echo $email ?>';
-        tryAuth();
-	</script>
-<?php
-}
-?>
+
 <script type="text/javascript">
-		wishlistStatus='<?php echo Mage::getStoreConfig('notepad/general/wishlist',Mage::app()->getStore()->getId()); ?>';
-		wishlistTitle='<?php echo $this->getWishlistTitle(); ?>';
+  _swrc('Callback', function(){
+    initSwym(); //swym-magento.js
+    window._swat.triggerNotify(<?php echo $this->getPageView() ?>);
+    <?php if($data=$this->getProductView()){ ?>
+  	window._swat.trackPageview(<?php echo $data ?>);
+      <?php if($this->getAddToWishlist()){ ?>
+    	window._swat.addToWishList(<?php echo $this->getAddToWishlist() ?>,function(){
+        setTimeout(function(){
+    		  document.getElementsByClassName('link-wishlist')[0].className=document.getElementsByClassName('link-wishlist')[0].className+' disabled';
+    	  }, 1000);
+      });
+      <?php } ?>
+    <?php } ?>
+    <?php if($data=$this->getCategoryView()){ ?>
+    	window._swat.trackPageview(<?php echo $data ?>);
+    <?php } ?>
+    <?php if($coupons=$this->getAddCoupon()){
+    	foreach($coupons as $coupon)
+    	{
+     ?>
+    	window._swat.addToCoupon(<?php echo $coupon ?>,function(r) { console.log('add coupon'); },{  uri : 'https://www.google.com/search?q=reminder'})
+    <?php
+    	}
+    }
+    ?>
+  });
+</script>
+<script type="text/javascript">
 		noteIsMobile='<?php echo $this->isMobile()?'1':'0'; ?>';
-		NotepadTitle='<?php echo Mage::getStoreConfig('notepad/general/title',Mage::app()->getStore()->getId()); ?>';
-		showNotepad='<?php echo Mage::getStoreConfig('notepad/general/show',Mage::app()->getStore()->getId()); ?>';
-		 window._swat.triggerNotify(<?php echo $this->getPageView() ?>);
 </script>
-<script type="text/javascript">
-      window._swat.triggerNotify(<?php echo $this->getPageView() ?>);
-</script>
-
-<?php if($data=$this->getProductView()){
-
- ?>
-	<script type="text/javascript">
-		window._swat.trackPageview(<?php echo $data ?>);
-	</script>
-<?php } ?>
-<?php if($data=$this->getCategoryView()){
- ?>
-	<script type="text/javascript">
-		if(typeof window._swat!='undefined')
-		{
-			window._swat.trackPageview(<?php echo $data ?>);
-         window._swat.triggerNotify({"pageType" : 0 });
-		}
-
-	</script>
-<?php } ?>
-<?php if($allData=$this->getAddToCart()){
-	foreach($allData as $data)
-	{
- ?>
-	<script type="text/javascript">
-		if(typeof window._swat!='undefined')
-		{
-			window._swat.addToCart(<?php echo $data ?>);
-		}
-	</script>
-<?php	}
- } ?>
-
-<?php if($allData=$this->getAddToWishlist()){
-	foreach($allData as $data)
-	{
- ?>
-	<script type="text/javascript">
-		// et - event-type of 4 indicates a Wishlist
-		window._swat.set("et", "4");
-		// du - document uri, if not set will use the URI of the current page
-		window._swat.set("du","<?php echo $data['du'] ?>");
-		// dt - document title, if not set will use the title of the current page
-		window._swat.set("dt","<?php echo $data['dt'] ?>");
-		// pr - price (float value assumed to be in USD)
-		window._swat.set("pr","<?php echo $data['pr'] ?>");
-		// op - orignal price (float value assumed to be in USD)
-		window._swat.set("op","<?php echo $data['pr'] ?>");
-		// epi - product identifier
-		window._swat.set("epi","<?php echo $data['epi'] ?>");
-		// iu = image uri, optional
-		window._swat.set("iu","<?php echo $data['iu'] ?>");
-		// Send this event
-		window._swat.send();
-	</script>
-<?php
-	}
-} ?>
-<?php if($coupons=$this->getAddCoupon()){
-	foreach($coupons as $coupon)
-	{
- ?>
-	<script type="text/javascript">
-		window._swat.addToCoupon(<?php echo $coupon ?>,function(r) { console.log('add coupon'); },                                                     {  uri : 'https://www.google.com/search?q=reminder'})
-	</script>
-<?php
-	}
-}
-
-?>
-<?php if($allData=$this->getReportPurchase()){
-	foreach($allData as $data)
-	{
- ?>
-	<script type="text/javascript">
-		if(typeof window._swat!='undefined')
-		{
-			window._swat.reportPurchase(<?php echo $data ?>);
-		}
-	</script>
-<?php	}
- } ?>
- <?php if($allData=$this->getRemovedItems()){
-	foreach($allData as $data)
-	{
- ?>
-	<script type="text/javascript">
-		if(typeof window._swat!='undefined')
-		{
-			window._swat.dropFromCart(<?php echo $data ?>);
-		}
-	</script>
-<?php	}
- } ?>
-
-

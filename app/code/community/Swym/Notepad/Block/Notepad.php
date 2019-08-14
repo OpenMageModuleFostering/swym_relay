@@ -8,6 +8,19 @@ class Swym_Notepad_Block_Notepad extends Mage_Core_Block_Template{
 
 	public function isNotepadEnabled()
 	{
+		$controller=$this->getRequest()->getControllerName();
+		$action=$this->getRequest()->getActionName();
+		$module=$this->getRequest()->getModuleName();
+		/*
+		if($module=='checkout'&&$controller=='onepage')
+		{
+			return false;
+		}
+		if($module=='customer'&&$controller=='account')
+		{
+			return false;
+		}
+		*/
 		$isEnabled=Mage::getStoreConfig('notepad/general/status', Mage::app()->getStore()->getId());
 		return $isEnabled;
 	}
@@ -30,7 +43,7 @@ class Swym_Notepad_Block_Notepad extends Mage_Core_Block_Template{
 
    public function getNotepadTitle()
    {
-      $title=Mage::getStoreConfig('notepad/general/title',Mage::app()->getStore()->getId());
+      $title=Mage::getStoreConfig('notepad/relay_ui/title',Mage::app()->getStore()->getId());
       if($title=='') {
          return 'Notepad';
       } else {
@@ -39,10 +52,17 @@ class Swym_Notepad_Block_Notepad extends Mage_Core_Block_Template{
    }
    public function getWishlistTitle()
 	{
-		$title=Mage::getStoreConfig('notepad/general/wishlisttitle',Mage::app()->getStore()->getId());
-		if(trim($title)=='')
-			return 'Add To my Favorites';
-		return $title;
+        $wishlistDisplay = Mage::getStoreConfig('notepad/wishlist/wishlistdisplay', Mage::app()->getStore()->getId());
+        $wishlistIcon    = Mage::getStoreConfig('notepad/wishlist/wishlisticon', Mage::app()->getStore()->getId());
+        $wishlistTitle   = trim(Mage::getStoreConfig('notepad/wishlist/wishlisttitle', Mage::app()->getStore()->getId()));
+
+        if($wishlistDisplay == 'icon' && $wishlistIcon != '') {
+            return '<img src="'.Mage::getBaseUrl('media') . 'notepad/' . $wishlistIcon.'" />';
+        } else {
+            if($wishlistTitle == '')
+                return 'Add To my Favorites';
+            return $wishlistTitle;
+        }
 	}
 	public function getProductView()
 	{
@@ -61,7 +81,7 @@ class Swym_Notepad_Block_Notepad extends Mage_Core_Block_Template{
 				}
 				else
 				{
-					$oprice=$price=$this->getDisplayPrice($product);
+					$oprice=$price=Mage::helper('notepad')->getDisplayPrice($product);
 				}
 
 				$data=array(
@@ -78,55 +98,6 @@ class Swym_Notepad_Block_Notepad extends Mage_Core_Block_Template{
 
 		return false;
 
-	}
-	public function getDisplayPrice($product) {
-		if ($product->getTypeId() == Mage_Catalog_Model_Product_Type::TYPE_BUNDLE){
-			$_product_id            = $product->getId();
-
-
-			$return_type            = 'min';
-
-
-			$model_catalog_product  = Mage::getModel('catalog/product'); // getting product model
-			$_product               = $model_catalog_product->load( $_product_id );
-
-			$TypeInstance           = $_product->getTypeInstance(true);
-			$Selections             = $TypeInstance->getSelectionsCollection($OptionIds, $_product );
-			$Options                = $TypeInstance->getOptionsByIds($OptionIds, $_product);
-			$bundleOptions          = $Options->appendSelections($Selections, true);
-
-			$minmax_pricevalue  = 0; // to sum them up from 0
-
-			foreach ($bundleOptions as $bundleOption) {
-				if ($bundleOption->getSelections()) {
-
-
-					$bundleSelections       = $bundleOption->getSelections();
-
-					$pricevalues_array  = array();
-					foreach ($bundleSelections as $bundleSelection) {
-
-						$pricevalues_array[] = $bundleSelection->getPrice();
-
-					}
-						if ( $return_type == 'max' ) {
-						rsort($pricevalues_array); // high to low
-						} else {
-							sort($pricevalues_array);   // low to high
-						}
-
-					// sum up the highest possible or lowest possible price
-					$minmax_pricevalue += $pricevalues_array[0];
-
-
-				}
-			}
-			return $minmax_pricevalue;
-
-		}
-		elseif ($product->getTypeId() == Mage_Catalog_Model_Product_Type::TYPE_CONFIGURABLE){
-			return $product->getFinalPrice();
-		}
 	}
 	public function getCategoryView()
 	{
@@ -187,6 +158,10 @@ class Swym_Notepad_Block_Notepad extends Mage_Core_Block_Template{
 		if($data=Mage::getSingleton('core/session')->getData('reportpurchase'))
 		{
 			Mage::getSingleton('core/session')->unsReportpurchase();
+			$order=Mage::getSingleton('core/session')->getData('swym_order');
+
+			Mage::getSingleton('core/session')->unsSwym_order();
+			Mage::log('order : '.$order.' '.print_r($data,true),null,'swym_purchase.log',true);
 			return $data;
 		}
 
@@ -207,6 +182,7 @@ class Swym_Notepad_Block_Notepad extends Mage_Core_Block_Template{
 	{
 		$controller=$this->getRequest()->getControllerName();
 		$action=$this->getRequest()->getActionName();
+		$moduleName=$this->getRequest()->getModuleName();
 		if($controller=='product'&&$action=='view')
 		{
 			$data=json_encode(array('pageType'=>1));
@@ -219,9 +195,9 @@ class Swym_Notepad_Block_Notepad extends Mage_Core_Block_Template{
 		{
 			$data=json_encode(array('pageType'=>3));
 		}
-		elseif($controller=='checkout'&&$action=='onepage')
+		elseif($moduleName=='checkout'&&$controller=='onepage')
 		{
-			$data=json_encode(array('pageType'=>4));
+			$data=json_encode(array('pageType'=>5));
 		}
 		else
 		{
@@ -242,13 +218,35 @@ class Swym_Notepad_Block_Notepad extends Mage_Core_Block_Template{
 	}
 	public function getAddToWishlist()
 	{
-
-
-		if($data=Mage::getSingleton('core/session')->getData('notepad_wishlist'))
+		$controller=$this->getRequest()->getControllerName();;
+		$action=$this->getRequest()->getActionName();
+		if($controller=='product'&&$action=='view' && strtolower($this->getRequest()->getParam('action'))=='addtofavorites')
 		{
-			Mage::getSingleton('core/session')->unsNotepad_wishlist();
-			Mage::getModel('core/cookie')->delete('notepad_wishlist');
-			return $data;
+			if($id=$this->getRequest()->getParam('id'))
+			{
+				$product=Mage::getModel('catalog/product')->load($id);
+				$image=Mage::helper('notepad')->getImageUrl($product);
+				if($product->getTypeId()=='simple')
+				{
+					$price=$product->getFinalPrice();
+					$oprice=$product->getPrice();
+				}
+				else
+				{
+					$oprice=$price=Mage::helper('notepad')->getDisplayPrice($product);
+				}
+
+				$data=array(
+				'du'=>$product->getProductUrl(),
+				'dt'=>$product->getName(),
+				'pr'=>$price,
+				'op'=>$oprice,
+				'qty'=>1,
+				'epi'=>$product->getId(),
+				'iu'=>$image,
+				);
+				return json_encode($data);
+			}
 		}
 
 		return false;
@@ -283,6 +281,16 @@ class Swym_Notepad_Block_Notepad extends Mage_Core_Block_Template{
 		}
 		return $mobi;
 	}
+
+	public function getLoggedInEmail()
+	{
+		if($email=Mage::getSingleton('core/session')->getData('swym_customer_email'))
+		{
+			Mage::getSingleton('core/session')->unsSwym_customer_email();
+			return $email;
+		}
+
+		return false;
+	}
+
 }
-
-

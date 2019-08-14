@@ -1,31 +1,12 @@
 <?php if($this->isNotepadEnabled()){
   $retailerId=$this->getRetailerId();
-  $notepadTitle=$this->getNotepadTitle();
 ?>
 <script type="text/javascript">
-   if(typeof window._swat!='undefined') {
-      window._swat.setRetailerId("<?php echo $retailerId; ?>");
-      window._swat.triggerNotify({"pageType" : 0 });
-      window._swat.setTitle("<?php echo $notepadTitle; ?>");
-   }
+    _swrc('RetailerId', "<?php echo $retailerId; ?>");
+    <?php if(!$this->canShowNotepad()): ?>
+    _swrc('HideUIOverride', "true");
+    <?php endif; ?>
 </script>
-<?php if($this->canShowNotepad()): ?>
-    <?php $notepadColor = trim(str_replace('#', '', Mage::getStoreConfig('notepad/general/primary_color', Mage::app()->getStore()->getId()))); ?>
-    <?php $notepadIcon = Mage::getStoreConfig('notepad/general/icon', Mage::app()->getStore()->getId()); ?>
-    <style type="text/css">
-        <?php if(preg_match('/([a-f]|[A-F]|[0-9]){3}(([a-f]|[A-F]|[0-9]){3})?\b/', $notepadColor)): ?>
-        .swym-background-color { background-color: #<?php echo $notepadColor; ?> !important; }
-        .swym-text-color { color: #<?php echo $notepadColor; ?> !important; }
-        <?php endif; ?>
-        <?php if($notepadIcon): ?>
-        .swym-icon {
-            background: url('<?php echo Mage::getBaseUrl('media') . 'notepad/' . $notepadIcon; ?>') !important;
-            background-size: 20px !important;
-        }
-        <?php endif; ?>
-    </style>
-    <?php echo $this->getChildHtml('main_notepad'); ?>
-<?php endif; ?>
 
 <div id="swym_call_js">
 <?php
