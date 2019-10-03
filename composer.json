@@ -1,16 +1,19 @@
 {
-    "name": "OpenMageModuleFostering/Swym_Relay",
+    "name": "OpenMageModuleFostering\/Swym_Relay",
     "type": "magento-module",
     "license": "Swym-License",
     "homepage": "",
     "description": "Swym Relay helps retail brands enable a seamless shopping experience for their mobile customers ",
     "authors": [
-    {
-        "name": "Swym Corporation",
-        "email": "admin@swymcorp.com"
-    }
-],
+        {
+            "name": "Swym Corporation",
+            "email": "admin@swymcorp.com"
+        }
+    ],
     "suggest": {
-        "magento-hackathon/magento-composer-installer": "*"
-    }
+        "magento-hackathon\/magento-composer-installer": "*"
+    },
+    "keywords": [
+        "openmage-module"
+    ]
 }
